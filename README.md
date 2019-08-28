@@ -3,8 +3,17 @@
 
 # otpr
 
+<!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/otpr)](https://cran.r-project.org/package=otpr)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/otpr)](https://cran.r-project.org/package=otpr)
 [![Build
 Status](https://travis-ci.org/marcusyoung/otpr.svg?branch=master)](https://travis-ci.org/marcusyoung/otpr)
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
+
+<!-- badges: end -->
 
 ## Overview
 
@@ -21,7 +30,18 @@ derive variables for use in transportation models.
 ## Installation
 
 ``` r
-# To install the development version from GitHub:
+# Install from CRAN
+install.packages("otpr")
+```
+
+### Development version
+
+To get a bug fix, or use a feature from the development version, you can
+install otpr from GitHub. See
+[NEWS](https://github.com/marcusyoung/otpr/blob/master/NEWS.md) for
+changes since last release.
+
+``` r
 # install.packages("devtools")
 devtools::install_github("marcusyoung/otpr")
 ```
@@ -45,6 +65,15 @@ reachable.
 otpcon <- otp_connect()
 #> Router http://localhost:8080/otp/routers/default exists
 ```
+
+## Querying the OTP API
+
+### Function behaviour
+
+The functions that query the OTP API return a list of two elements. The
+first element is an errorId - with the value “OK” or the error code
+returned by OTP. If errorId is “OK”, the second element will contain the
+query response; otherwise it will contain the OTP error message.
 
 ### Distance between two points
 
@@ -81,7 +110,7 @@ otp_get_distance(
 
 ### Time between two points
 
-To get the trip duration in minutes between an origin and destination
+To get the trip duration in seconds between an origin and destination
 use `otp_get_times()`. You can specify the required mode: TRANSIT (all
 available transit modes), BUS, RAIL, CAR, BICYCLE, and WALK are valid.
 All the public transit modes automatically allow WALK. There is also the
@@ -99,7 +128,7 @@ otp_get_times(
 #> [1] "OK"
 #> 
 #> $duration
-#> [1] 4084
+#> [1] 4744
 
 
 # By default the date and time of travel is taken as the current system date and
@@ -123,10 +152,10 @@ otp_get_times(
 
 To get more information about the trip when using transit modes,
 `otp_get_times()` can be called with the ‘detail’ argument set to TRUE.
-The trip duration is then further broken down by time on transit,
-walking time (from/to and between stops), waiting time (when changing
-transit vehicle or mode), and number of transfers (when changing transit
-vehicle or
+The trip duration (minutes) is then further broken down by time on
+transit, walking time (from/to and between stops), waiting time (when
+changing transit vehicle or mode), and number of transfers (when
+changing transit vehicle or
 mode).
 
 ``` r
@@ -153,21 +182,76 @@ otp_get_times(
 ### Travel time isochrones
 
 The `otp_get_isochrone()` function can be used to get one or more travel
-time isochrones in GeoJSON format. These are only available for transit
-or walking modes (OTP limitation). They can be generated either *from*
-(default) or *to* the specified
-location.
+time isochrones in either GeoJSON or SF format. These are only available
+for transit or walking modes (OTP limitation). They can be generated
+either *from* (default) or *to* the specified location.
+
+#### GeoJSON example
 
 ``` r
+
 # 900, 1800 and 2700 second isochrones for travel *to* Manchester Airport by any transit mode
-otp_get_isochrone(
+my_isochrone <- otp_get_isochrone(
   otpcon,
   location = c(53.36484, -2.27108),
   fromLocation = FALSE,
   cutoffs = c(900, 1800, 2700),
   mode = "TRANSIT"
 )
+
+# function returns a list of two elements
+names(my_isochrone)
+#> [1] "errorId"  "response"
+
+# now write the GeoJSON (in the "response" element) to a file so it can be opened in QGIS (for example)
+write(my_isochrone$response, file = "my_isochrone.geojson")
 ```
+
+#### SF example (currently available in development version)
+
+``` r
+
+# request format as "SF"
+my_isochrone <- otp_get_isochrone(
+  otpcon,
+  location = c(53.36484, -2.27108),
+  format = "SF",
+  fromLocation = FALSE,
+  cutoffs = c(900, 1800, 2700, 3600, 4500, 5400),
+  mode = "TRANSIT",
+  date = "11-12-2018",
+  time= "08:00:00",
+  maxWalkDistance = 1600,
+  walkReluctance = 5,
+  minTransferTime = 600
+)
+
+# plot using tmap package
+
+library(tmap)
+library(tmaptools)
+
+# set bounding box
+bbox <- bb(my_isochrone$response)
+# get OSM tiles
+osm_man <- read_osm(bbox, ext = 1.1)
+# plot isochrones
+tm_shape(osm_man) +
+  tm_rgb() +
+  tm_shape(my_isochrone$response) +
+  tm_fill(
+    col = "time",
+    alpha = 0.8,
+    palette = "-plasma",
+    n = 6,
+    style = "cat",
+    title = "Time (seconds)"
+  ) + tm_layout(legend.position = c("left", "top"), legend.bg.color = "white", 
+                main.title = "15-90 minute isochrone to Manchester Airport", 
+                main.title.size = 0.8)
+```
+
+<img src="man/figures/unnamed-chunk-7-1.png" width="80%" />
 
 ## Learning more
 
@@ -192,3 +276,10 @@ For more guidance on how **otpr**, in conjunction with OTP, can be used
 to generate data for input into models, read [An automated framework to
 derive model variables from open transport data using R, PostgreSQL and
 OpenTripPlanner](https://eprints.soton.ac.uk/389728/).
+
+## Getting help
+
+  - Please [report any issues or
+    bugs](https://github.com/marcusyoung/otpr/issues).
+  - Get citation information for **otpr** using: `citation(package =
+    'otpr')`.

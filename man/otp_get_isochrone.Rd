@@ -2,12 +2,12 @@
 % Please edit documentation in R/otpr_get_isochrone.R
 \name{otp_get_isochrone}
 \alias{otp_get_isochrone}
-\title{Returns one or more travel time isochrones in GeoJSON format}
+\title{Returns one or more travel time isochrones}
 \usage{
 otp_get_isochrone(otpcon, location, fromLocation = TRUE,
-  mode = "TRANSIT", date, time, cutoffs, batch = TRUE,
-  arriveBy = FALSE, maxWalkDistance = 800, walkReluctance = 2,
-  transferPenalty = 0, minTransferTime = 0)
+  format = "JSON", mode = "TRANSIT", date, time, cutoffs,
+  batch = TRUE, arriveBy = FALSE, maxWalkDistance = 800,
+  walkReluctance = 2, transferPenalty = 0, minTransferTime = 0)
 }
 \arguments{
 \item{otpcon}{An OTP connection object produced by \code{\link{otp_connect}}.}
@@ -15,19 +15,24 @@ otp_get_isochrone(otpcon, location, fromLocation = TRUE,
 \item{location}{Numeric vector, Latitude/Longitude pair, e.g. `c(53.48805, -2.24258)`}
 
 \item{fromLocation}{Logical. If TRUE (default) the isochrone
-will be generated \emph{from} the \code{location}. If FALSE the isochrone will be generated
-\emph{to} the \code{location}.}
+will be generated \emph{from} the \code{location}. If FALSE the isochrone will
+be generated \emph{to} the \code{location}.}
 
-\item{mode}{Character, mode of travel. Valid values are: WALK, TRANSIT, BUS, or RAIL.
-Note that WALK mode is automatically included for TRANSIT, BUS and RAIL. TRANSIT will use all
-available transit modes. Default is TRANSIT.}
+\item{format}{Character, required format of returned isochrone(s). Either JSON
+(returns GeoJSON) or SF (returns simple feature collection). Default is JSON.}
 
-\item{date}{Character, must be in the format mm-dd-yyyy. This is the desired date of travel.
-Only relevant if \code{mode} includes public transport. Default is current system date.}
+\item{mode}{Character, mode of travel. Valid values are: WALK, TRANSIT, BUS,
+or RAIL.
+Note that WALK mode is automatically included for TRANSIT, BUS and RAIL.
+TRANSIT will use all available transit modes. Default is TRANSIT.}
 
-\item{time}{Character, must be in the format hh:mm:ss. If \code{arriveBy} is FALSE (the default)
-this is the desired departure time, otherwise the desired arrival time. Default
-is current system time.}
+\item{date}{Character, must be in the format mm-dd-yyyy. This is the desired
+date of travel. Only relevant if \code{mode} includes public transport.
+Default is current system date.}
+
+\item{time}{Character, must be in the format hh:mm:ss. If \code{arriveBy} is
+FALSE (the default) this is the desired departure time, otherwise the desired
+arrival time. Default is current system time.}
 
 \item{cutoffs}{Numeric vector, containing the cutoff times in seconds, for
 example: 'c(900, 1800. 2700)'
@@ -55,17 +60,20 @@ Default is 0.}
 }
 \value{
 Returns a list. First element in the list is \code{errorId}. This is "OK" if
-OTP has returned GeoJSON, otherwise it is "ERROR". The second element of list
-varies:
+OTP successfully returned the isochrone(s), otherwise it is "ERROR". The second
+element of list varies:
 \itemize{
 \item If \code{errorId} is "ERROR" then \code{response} contains the OTP error message.
-\item If \code{errorId} is "OK" then \code{response} contains the GeoJSON for the isochrone(s).
+\item If \code{errorId} is "OK" then \code{response} contains the the isochrone(s) in
+either GeoJSON format or as an \strong{sf} object, depending on the value of the
+\code{format} argument.
 }
 }
 \description{
-Returns one or more travel time isochrone in GeoJSON format. Only works correctly for
-walk and/or transit modes - a limitation of OTP. Isochrones can be generated either
-\emph{from} a location or \emph{to} a location.
+Returns one or more travel time isochrone in either GeoJSON format or as an
+\strong{sf} object. Only works correctly for walk and/or transit modes - a limitation
+of OTP. Isochrones can be generated either \emph{from} a location or \emph{to}
+a location.
 }
 \examples{
 \dontrun{
