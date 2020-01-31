@@ -1,6 +1,6 @@
 Package: otpr
 Title: An R Wrapper for the 'OpenTripPlanner' REST API
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Marcus", "Young", email = "M.A.Young@soton.ac.uk", role = c("aut", "cre"))
     )
@@ -8,14 +8,15 @@ Description: A wrapper for the 'OpenTripPlanner' <http://www.opentripplanner.org
     REST API. Queries are submitted to the relevant 'OpenTripPlanner' API resource, the response
     is parsed and useful R objects are returned.
 License: MIT + file LICENSE
+Language: en-GB
 Encoding: UTF-8
 LazyData: true
-Imports: checkmate, httr, jsonlite, geojsonsf
+Imports: checkmate, httr, janitor, jsonlite, geojsonsf
 RoxygenNote: 6.1.1
 Suggests: testthat
 NeedsCompilation: no
-Packaged: 2019-08-28 22:10:12 UTC; marcu
+Packaged: 2020-01-31 20:29:10 UTC; marcu
 Author: Marcus Young [aut, cre]
 Maintainer: Marcus Young <M.A.Young@soton.ac.uk>
 Repository: CRAN
-Date/Publication: 2019-08-28 22:30:03 UTC
+Date/Publication: 2020-01-31 21:00:03 UTC
