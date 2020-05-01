@@ -31,7 +31,7 @@ derive variables for use in transportation models.
 
 ``` r
 # Install from CRAN
-install.packages("otpr")
+# install.packages("otpr")
 ```
 
 ### Development version
@@ -43,7 +43,7 @@ changes since last release.
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("marcusyoung/otpr")
+# devtools::install_github("marcusyoung/otpr")
 ```
 
 ## Getting started
@@ -56,24 +56,39 @@ library(otpr)
 
 The first step is to call `otp_connect()`, which defines the parameters
 needed to connect to a router on a running OTP instance. The function
-can also confirm that the router is
-reachable.
+can also confirm that the router is reachable.
 
 ``` r
 # For a basic instance of OTP running on localhost with standard ports and a 'default' router
 # this is all that's needed
 otpcon <- otp_connect()
+#> http://localhost:8080/otp is running OTPv1
 #> Router http://localhost:8080/otp/routers/default exists
 ```
+
+#### Handling Time Zones
+
+If the time zone of an OTP graph *differs* from the time zone of the
+local system running **otpr** then by default returned trip start and
+end times will be expressed in the local system’s time zone and not the
+time zone of the graph. This is because the OTP API returns EPOCH values
+and the conversion to date and time format occurs on the local system. A
+‘timeZone’ column is included in returned dataframes that contain start
+and end times to make this explicit. If you wish to have start and end
+times expressed in the time zone of the graph, the ‘tz’ argument can be
+specified when calling the `otp_connect()` function. This must be a
+valid time zone (checked against the vector returned by `OlsonNames()`);
+for example: “Europe/Berlin”.
 
 ## Querying the OTP API
 
 ### Function behaviour
 
-The functions that query the OTP API return a list of two elements. The
-first element is an errorId - with the value “OK” or the error code
-returned by OTP. If errorId is “OK”, the second element will contain the
-query response; otherwise it will contain the OTP error message.
+The functions that query the OTP API generally return a list of two
+elements. The first element is an errorId - with the value “OK” or the
+error code returned by OTP. If errorId is “OK”, the second element will
+contain the query response; otherwise it will contain the OTP error
+message.
 
 ### Distance between two points
 
@@ -92,7 +107,7 @@ otp_get_distance(
 #> [1] "OK"
 #> 
 #> $distance
-#> [1] 29207.19
+#> [1] 29051.51
 
 # Now for BICYCLE
 otp_get_distance(
@@ -105,7 +120,7 @@ otp_get_distance(
 #> [1] "OK"
 #> 
 #> $distance
-#> [1] 16235.37
+#> [1] 16065.04
 ```
 
 ### Time between two points
@@ -117,18 +132,18 @@ All the public transit modes automatically allow WALK. There is also the
 option to combine TRANSIT with BICYCLE.
 
 ``` r
-# Time between Manchester city centre and Manchester airport by BUS
+# Time between Manchester city centre and Manchester airport by BICYCLE
 otp_get_times(
   otpcon,
   fromPlace = c(53.48805,-2.24258),
   toPlace = c(53.36484,-2.27108),
-  mode = "BUS"
+  mode = "BICYCLE"
 )
 #> $errorId
 #> [1] "OK"
 #> 
 #> $duration
-#> [1] 70.87
+#> [1] 60.12
 
 
 # By default the date and time of travel is taken as the current system date and
@@ -138,14 +153,14 @@ otp_get_times(
   fromPlace = c(53.48805,-2.24258),
   toPlace = c(53.36484,-2.27108),
   mode = "TRANSIT",
-  date = "11-25-2018",
-  time = "08:00:00"
+  date = "04-29-2020",
+  time = "07:15:00"
 )
 #> $errorId
 #> [1] "OK"
 #> 
 #> $duration
-#> [1] 45.68
+#> [1] 42.2
 ```
 
 ### Breakdown of time by mode, waiting time and transfers
@@ -155,8 +170,7 @@ To get more information about the trip when using transit modes,
 The trip duration (minutes) is then further broken down by time on
 transit, walking time (from/to and between stops), waiting time (when
 changing transit vehicle or mode), and number of transfers (when
-changing transit vehicle or
-mode).
+changing transit vehicle or mode).
 
 ``` r
 # Time between Manchester city centre and Manchester airport by TRANSIT with detail
@@ -165,18 +179,56 @@ otp_get_times(
   fromPlace = c(53.48805,-2.24258),
   toPlace = c(53.36484,-2.27108),
   mode = "TRANSIT",
-  date = "11-25-2018",
-  time = "08:00:00",
+  date = "04-29-2020",
+  time = "07:15:00",
   detail = TRUE
 )
 #> $errorId
 #> [1] "OK"
 #> 
 #> $itineraries
-#>                 start                 end duration walkTime transitTime
-#> 1 2018-11-25 08:02:57 2018-11-25 08:48:38    45.68     7.92          31
-#>   waitingTime transfers
-#> 1        6.77         1
+#>                 start                 end      timeZone duration walkTime
+#> 1 2020-04-29 07:37:31 2020-04-29 08:19:43 Europe/London     42.2     5.17
+#>   transitTime waitingTime transfers
+#> 1          37        0.03         0
+```
+
+#### Details of each leg for transit-based trips
+
+To get information about each leg of transit-based trips,
+`otp_get_times()` can be called with both the ‘detail’ and ‘includeLegs’
+arguments set to TRUE. A third element, called ‘legs’, will then be
+returned. The ‘legs’ element is a dataframe containing a row for each
+leg of the trip. The information provided for each leg includes start
+and end times, duration, distance, mode, route details, agency details,
+and stop names. There is also a column called ‘departureWait’ which is
+the length of time in minutes required to wait before the start of a
+leg. The sum of ‘departureWait’ will equal the total waiting time for
+the itinerary.
+
+``` r
+# Time between Manchester city centre and Manchester airport by TRANSIT with detail and legs
+trip <- otp_get_times(
+  otpcon,
+  fromPlace = c(53.48805,-2.24258),
+  toPlace = c(53.36484,-2.27108),
+  mode = "TRANSIT",
+  date = "04-29-2020",
+  time = "07:15:00",
+  detail = TRUE,
+  includeLegs = TRUE
+)
+
+# View legs (first 9 columns)
+trip$legs[1:9]
+#>             startTime             endTime      timeZone mode departureWait
+#> 1 2020-04-29 07:37:31 2020-04-29 07:38:59 Europe/London WALK          0.00
+#> 2 2020-04-29 07:39:00 2020-04-29 08:16:00 Europe/London RAIL          0.02
+#> 3 2020-04-29 08:16:01 2020-04-29 08:19:43 Europe/London WALK          0.02
+#>   duration  distance routeType routeId
+#> 1     1.47    98.057        NA    <NA>
+#> 2    37.00 17872.820         2 1:13081
+#> 3     3.70   245.949        NA    <NA>
 ```
 
 ### Travel time isochrones
@@ -196,7 +248,9 @@ my_isochrone <- otp_get_isochrone(
   location = c(53.36484, -2.27108),
   fromLocation = FALSE,
   cutoffs = c(900, 1800, 2700),
-  mode = "TRANSIT"
+  mode = "TRANSIT",
+  date = "04-29-2020",
+  time = "07:15:00"
 )
 
 # function returns a list of two elements
@@ -219,8 +273,8 @@ my_isochrone <- otp_get_isochrone(
   fromLocation = FALSE,
   cutoffs = c(900, 1800, 2700, 3600, 4500, 5400),
   mode = "TRANSIT",
-  date = "11-12-2018",
-  time= "08:00:00",
+  date = "04-29-2020",
+  time= "07:15:00",
   maxWalkDistance = 1600,
   walkReluctance = 5,
   minTransferTime = 600
@@ -251,7 +305,7 @@ tm_shape(osm_man) +
                 main.title.size = 0.8)
 ```
 
-<img src="man/figures/unnamed-chunk-7-1.png" width="80%" />
+<img src="man/figures/unnamed-chunk-8-1.png" width="80%" />
 
 ## Learning more
 
@@ -271,6 +325,13 @@ This includes everything you need, including example data. The tutorial
 also has examples of using **otpr** functions, and helps you get the
 most from the package, for example using it to populate an
 origin-destination matrix.
+
+If you are already experienced with OTPv1 and want to try v2, you will
+need to build it from source. See this
+[guide](http://docs.opentripplanner.org/en/dev-2.x/Developers-Guide/)
+and this [basic
+tutorial](http://docs.opentripplanner.org/en/dev-2.x/Basic-Tutorial/#get-otp)
+from the OTP project team.
 
 For more guidance on how **otpr**, in conjunction with OTP, can be used
 to generate data for input into models, read [An automated framework to

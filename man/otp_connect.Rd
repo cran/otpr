@@ -4,14 +4,21 @@
 \alias{otp_connect}
 \title{Set up and confirm a connection to an OTP instance.}
 \usage{
-otp_connect(hostname = "localhost", router = "default", port = 8080,
-  tz = Sys.timezone(), ssl = FALSE, check = TRUE)
+otp_connect(
+  hostname = "localhost",
+  router = "default",
+  port = 8080,
+  tz = Sys.timezone(),
+  ssl = FALSE,
+  check = TRUE
+)
 }
 \arguments{
 \item{hostname}{A string, e.g. "ec2-34-217-73-26.us-west-2.compute.amazonaws.com".
 Optional, default is "localhost".}
 
-\item{router}{A string, e.g. "UK2018". Optional, default is "default".}
+\item{router}{A string, e.g. "UK2018". Optional, default is "default". Do not
+specify for OTPv2 which does not support named routers.}
 
 \item{port}{A positive integer. Optional, default is 8080.}
 
@@ -24,12 +31,10 @@ graph.}
 
 \item{ssl}{Logical, indicates whether to use https. Optional, default is FALSE.}
 
-\item{check}{Logical. If TRUE connection object is only returned if OTP
-instance and router are confirmed reachable. Optional, default is TRUE.}
+\item{check}{Deprecated and has no effect.}
 }
 \value{
-Returns S3 object of class otpconnect. If \code{check} is TRUE
-    and the router is not reachable the object is not returned.
+Returns S3 object of class otpconnect if reachable.
 }
 \description{
 Defines the parameters required to connect to a router on an OTP instance and,

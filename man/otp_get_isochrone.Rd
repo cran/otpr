@@ -2,12 +2,24 @@
 % Please edit documentation in R/otpr_get_isochrone.R
 \name{otp_get_isochrone}
 \alias{otp_get_isochrone}
-\title{Returns one or more travel time isochrones}
+\title{Returns one or more travel time isochrones (OTPv1 only)}
 \usage{
-otp_get_isochrone(otpcon, location, fromLocation = TRUE,
-  format = "JSON", mode = "TRANSIT", date, time, cutoffs,
-  batch = TRUE, arriveBy = FALSE, maxWalkDistance = 800,
-  walkReluctance = 2, transferPenalty = 0, minTransferTime = 0)
+otp_get_isochrone(
+  otpcon,
+  location,
+  fromLocation = TRUE,
+  format = "JSON",
+  mode = "TRANSIT",
+  date,
+  time,
+  cutoffs,
+  batch = TRUE,
+  arriveBy = FALSE,
+  maxWalkDistance = 800,
+  walkReluctance = 2,
+  transferPenalty = 0,
+  minTransferTime = 0
+)
 }
 \arguments{
 \item{otpcon}{An OTP connection object produced by \code{\link{otp_connect}}.}
