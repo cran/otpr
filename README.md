@@ -27,6 +27,25 @@ This package will be useful to researchers and transport planners who
 want to use OTP to generate trip data for accessibility analysis or to
 derive variables for use in transportation models.
 
+## Version support
+
+**otpr** supports OTP versions 1 and 2. However, as OTPv2 has not yet
+been released and changes to its codebase could cause errors in otpr or
+unexpected behaviour, OTPv2 support is currently considered
+experimental. Known issues with OTPv2 include:
+
+  - `otp_get_isochrone()` is only supported in OTPv1 as this feature has
+    been removed from OTPv2.
+  - The maxWalkDistance parameter used in the `otp_get_times()` function
+    is treated as a hard limit when the mode is either WALK or BICYCLE.
+    This could result in no itinerary being returned as the default is
+    800m. This is different from the behaviour of OTPv1 where this
+    parameter is effectively ignored when the mode is WALK and not
+    applied at all to BICYCLE trips. Workaround: provide a large value
+    to this parameter for these modes.
+  - The ‘routeType’ and ‘agencyUrl’ columns do not appear in the data
+    frame of journey legs as these are not returned by OTPv2.
+
 ## Installation
 
 ``` r
@@ -221,14 +240,14 @@ trip <- otp_get_times(
 
 # View legs (first 9 columns)
 trip$legs[1:9]
-#>             startTime             endTime      timeZone mode departureWait
-#> 1 2020-04-29 07:37:31 2020-04-29 07:38:59 Europe/London WALK          0.00
-#> 2 2020-04-29 07:39:00 2020-04-29 08:16:00 Europe/London RAIL          0.02
-#> 3 2020-04-29 08:16:01 2020-04-29 08:19:43 Europe/London WALK          0.02
-#>   duration  distance routeType routeId
-#> 1     1.47    98.057        NA    <NA>
-#> 2    37.00 17872.820         2 1:13081
-#> 3     3.70   245.949        NA    <NA>
+#>             startTime             endTime  distance mode duration
+#> 1 2020-04-29 07:37:31 2020-04-29 07:38:59    98.057 WALK     1.47
+#> 2 2020-04-29 07:39:00 2020-04-29 08:16:00 17872.820 RAIL    37.00
+#> 3 2020-04-29 08:16:01 2020-04-29 08:19:43   245.949 WALK     3.70
+#>                   agencyName                    agencyUrl routeType routeId
+#> 1                       <NA>                         <NA>        NA    <NA>
+#> 2 First TransPennine Express https://www.tpexpress.co.uk/         2 1:13081
+#> 3                       <NA>                         <NA>        NA    <NA>
 ```
 
 ### Travel time isochrones
