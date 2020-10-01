@@ -1,21 +1,25 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# otpr
+otpr <img src='man/figures/sticker.png' align="right" height=250/>
+==================================================================
 
 <!-- badges: start -->
 
-[![CRAN
-status](https://www.r-pkg.org/badges/version/otpr)](https://cran.r-project.org/package=otpr)
-[![CRAN
-downloads](https://cranlogs.r-pkg.org/badges/grand-total/otpr)](https://cran.r-project.org/package=otpr)
 [![Build
 Status](https://travis-ci.org/marcusyoung/otpr.svg?branch=master)](https://travis-ci.org/marcusyoung/otpr)
-[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
-
+[![CRAN
+status](https://www.r-pkg.org/badges/version/otpr)](https://cran.r-project.org/package=otpr)
+[![Codecov test
+coverage](https://codecov.io/gh/marcusyoung/otpr/branch/master/graph/badge.svg)](https://codecov.io/gh/marcusyoung/otpr?branch=master)
+[![CRAN
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/otpr)](https://cran.r-project.org/package=otpr)
+[![Project Status: Active – The project has reached a stable, usable
+state and is being actively
+developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <!-- badges: end -->
 
-## Overview
+Overview
+--------
 
 **otpr** is an R package that provides a simple wrapper for the
 [OpenTripPlanner](https://www.opentripplanner.org/) (OTP) API. To use
@@ -27,30 +31,32 @@ This package will be useful to researchers and transport planners who
 want to use OTP to generate trip data for accessibility analysis or to
 derive variables for use in transportation models.
 
-## Version support
+Version support
+---------------
 
 **otpr** supports OTP versions 1 and 2. However, as OTPv2 has not yet
 been released and changes to its codebase could cause errors in otpr or
 unexpected behaviour, OTPv2 support is currently considered
 experimental. Known issues with OTPv2 include:
 
-  - `otp_get_isochrone()` is only supported in OTPv1 as this feature has
+-   `otp_get_isochrone()` is only supported in OTPv1 as this feature has
     been removed from OTPv2.
-  - The maxWalkDistance parameter used in the `otp_get_times()` function
+-   The maxWalkDistance parameter used in the `otp_get_times()` function
     is treated as a hard limit when the mode is either WALK or BICYCLE.
     This could result in no itinerary being returned as the default is
     800m. This is different from the behaviour of OTPv1 where this
     parameter is effectively ignored when the mode is WALK and not
     applied at all to BICYCLE trips. Workaround: provide a large value
     to this parameter for these modes.
-  - The ‘routeType’ and ‘agencyUrl’ columns do not appear in the data
+-   The ‘routeType’ and ‘agencyUrl’ columns do not appear in the data
     frame of journey legs as these are not returned by OTPv2.
 
-## Installation
+Installation
+------------
 
 ``` r
 # Install from CRAN
-# install.packages("otpr")
+install.packages("otpr")
 ```
 
 ### Development version
@@ -61,11 +67,12 @@ install otpr from GitHub. See
 changes since last release.
 
 ``` r
-# install.packages("devtools")
-# devtools::install_github("marcusyoung/otpr")
+install.packages("devtools")
+devtools::install_github("marcusyoung/otpr")
 ```
 
-## Getting started
+Getting started
+---------------
 
 ``` r
 library(otpr)
@@ -99,15 +106,17 @@ specified when calling the `otp_connect()` function. This must be a
 valid time zone (checked against the vector returned by `OlsonNames()`);
 for example: “Europe/Berlin”.
 
-## Querying the OTP API
+Querying the OTP API
+--------------------
 
 ### Function behaviour
 
-The functions that query the OTP API generally return a list of two
+The functions that query the OTP API generally return a list of three
 elements. The first element is an errorId - with the value “OK” or the
 error code returned by OTP. If errorId is “OK”, the second element will
 contain the query response; otherwise it will contain the OTP error
-message.
+message, the third element is the query URL that was sent to the OTP API
+(for information and useful for troubleshooting).
 
 ### Distance between two points
 
@@ -127,6 +136,9 @@ otp_get_distance(
 #> 
 #> $distance
 #> [1] 29051.51
+#> 
+#> $query
+#> [1] "http://localhost:8080/otp/routers/default/plan?fromPlace=53.48805,-2.24258&toPlace=53.36484,-2.27108&mode=CAR"
 
 # Now for BICYCLE
 otp_get_distance(
@@ -140,6 +152,9 @@ otp_get_distance(
 #> 
 #> $distance
 #> [1] 16065.04
+#> 
+#> $query
+#> [1] "http://localhost:8080/otp/routers/default/plan?fromPlace=53.48805,-2.24258&toPlace=53.36484,-2.27108&mode=BICYCLE"
 ```
 
 ### Time between two points
@@ -163,6 +178,9 @@ otp_get_times(
 #> 
 #> $duration
 #> [1] 60.12
+#> 
+#> $query
+#> [1] "http://localhost:8080/otp/routers/default/plan?fromPlace=53.48805,-2.24258&toPlace=53.36484,-2.27108&mode=BICYCLE&date=10-01-2020&time=17:18:09&maxWalkDistance=800&walkReluctance=2&arriveBy=FALSE&transferPenalty=0&minTransferTime=0"
 
 
 # By default the date and time of travel is taken as the current system date and
@@ -180,6 +198,9 @@ otp_get_times(
 #> 
 #> $duration
 #> [1] 42.2
+#> 
+#> $query
+#> [1] "http://localhost:8080/otp/routers/default/plan?fromPlace=53.48805,-2.24258&toPlace=53.36484,-2.27108&mode=TRANSIT,WALK&date=04-29-2020&time=07:15:00&maxWalkDistance=800&walkReluctance=2&arriveBy=FALSE&transferPenalty=0&minTransferTime=0"
 ```
 
 ### Breakdown of time by mode, waiting time and transfers
@@ -210,6 +231,9 @@ otp_get_times(
 #> 1 2020-04-29 07:37:31 2020-04-29 08:19:43 Europe/London     42.2     5.17
 #>   transitTime waitingTime transfers
 #> 1          37        0.03         0
+#> 
+#> $query
+#> [1] "http://localhost:8080/otp/routers/default/plan?fromPlace=53.48805,-2.24258&toPlace=53.36484,-2.27108&mode=TRANSIT,WALK&date=04-29-2020&time=07:15:00&maxWalkDistance=800&walkReluctance=2&arriveBy=FALSE&transferPenalty=0&minTransferTime=0"
 ```
 
 #### Details of each leg for transit-based trips
@@ -260,7 +284,6 @@ either *from* (default) or *to* the specified location.
 #### GeoJSON example
 
 ``` r
-
 # 900, 1800 and 2700 second isochrones for travel *to* Manchester Airport by any transit mode
 my_isochrone <- otp_get_isochrone(
   otpcon,
@@ -274,7 +297,7 @@ my_isochrone <- otp_get_isochrone(
 
 # function returns a list of two elements
 names(my_isochrone)
-#> [1] "errorId"  "response"
+#> [1] "errorId"  "response" "query"
 
 # now write the GeoJSON (in the "response" element) to a file so it can be opened in QGIS (for example)
 write(my_isochrone$response, file = "my_isochrone.geojson")
@@ -283,7 +306,6 @@ write(my_isochrone$response, file = "my_isochrone.geojson")
 #### SF example
 
 ``` r
-
 # request format as "SF"
 my_isochrone <- otp_get_isochrone(
   otpcon,
@@ -324,9 +346,10 @@ tm_shape(osm_man) +
                 main.title.size = 0.8)
 ```
 
-<img src="man/figures/unnamed-chunk-8-1.png" width="80%" />
+<img src="man/figures/unnamed-chunk-9-1.png" width="80%" />
 
-## Learning more
+Learning more
+-------------
 
 The example function calls shown above can be extended by passing
 additional parameters to the OTP API. Further information is available
@@ -357,9 +380,17 @@ to generate data for input into models, read [An automated framework to
 derive model variables from open transport data using R, PostgreSQL and
 OpenTripPlanner](https://eprints.soton.ac.uk/389728/).
 
-## Getting help
+Getting help
+------------
 
-  - Please [report any issues or
+-   Please [report any issues or
     bugs](https://github.com/marcusyoung/otpr/issues).
-  - Get citation information for **otpr** using: `citation(package =
-    'otpr')`.
+-   Get citation information for **otpr** using:
+    `citation(package = 'otpr')`.
+
+Want to say thanks?
+-------------------
+
+<a href="https://ko-fi.com/marcusyoung"><img src='man/figures/BuyMeACoffee_blue@2x.png' align="left" width=200/></a>
+
+</br>
